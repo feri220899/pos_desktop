@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import routes from './routes'
 
@@ -15,8 +15,15 @@ function createWindow() {
 
     if (process.env.NODE_ENV === 'development') {
         win.loadURL(process.env.ELECTRON_RENDERER_URL)
+        win.webContents.openDevTools()
     } else {
+        Menu.setApplicationMenu(null)
         win.loadFile(join(__dirname, '../renderer/index.html'))
+        win.webContents.on('before-input-event', (event, input) => {
+            if (input.key === 'F12' || (input.control && input.shift && input.key === 'I')) {
+                event.preventDefault()
+            }
+        })
     }
 }
 

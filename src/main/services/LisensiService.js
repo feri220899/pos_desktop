@@ -1,5 +1,6 @@
 import axios from 'axios'
 import jwt from 'jsonwebtoken'
+import DeviceService from './DeviceService'
 
 const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvGDG8GdB6J63/23CEFuV
@@ -25,6 +26,10 @@ function verifyToken(token) {
     try {
         const payload  = jwt.verify(token, PUBLIC_KEY, { algorithms: ['RS256'] })
         const daysLeft = (payload.exp * 1000 - Date.now()) / 86400000
+
+        if (payload.device_id !== DeviceService.getId()) {
+            return { valid: false, expired: false, daysLeft: 0 }
+        }
 
         if (payload.expired_at && Date.now() / 1000 > payload.expired_at) {
             return { valid: false, expired: true, daysLeft: 0 }
