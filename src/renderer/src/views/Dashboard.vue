@@ -4,9 +4,9 @@ const stats = [
     { label: 'Pendapatan Hari Ini', value: 'Rp 0', desc: 'total'    },
     { label: 'Total Produk',        value: '0',    desc: 'produk'    },
 ]
-
+const device = window.api.device
 async function testAktivasi() {
-    const test = await window.api.device.getId()
+    const test = await device.getInfo();
     console.log(test);
         
 }

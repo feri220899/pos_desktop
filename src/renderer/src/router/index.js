@@ -10,7 +10,50 @@ const routes = [
     { path: '/produk',    component: Produk,    meta: { layout: true  } },
 ]
 
-export default createRouter({
+const router = createRouter({
     history: createWebHashHistory(),
     routes,
 })
+
+async function renewInBackground() {
+    try {
+        const key      = await window.api.config.get('license_key')
+        const deviceId = await window.api.device.getId()
+        if (!key) return
+        const result = await window.api.lisensi.validasi(key, deviceId)
+        if (result.token) {
+            await window.api.config.set('license_token', result.token)
+            await window.api.config.set('last_validated_at', Date.now())
+        }
+    } catch { /* server tidak bisa dihubungi, abaikan */ }
+}
+
+router.beforeEach(async (to) => {
+    if (to.path === '/aktivasi') return true
+
+    const token = await window.api.config.get('license_token')
+    if (!token) return '/aktivasi'
+
+    const verify = await window.api.lisensi.verifyToken(token)
+    
+    if (verify.valid) {
+        if (verify.daysLeft < 2) renewInBackground()
+        return true
+    }
+
+    if (verify.expired) {
+        // JWT expired — coba renewal dulu, kalau gagal beri grace 3 hari
+        const lastValidated = await window.api.config.get('last_validated_at')
+        if (lastValidated) {
+            const hariSejak = (Date.now() - lastValidated) / 86400000
+            if (hariSejak < 3) {
+                renewInBackground()
+                return true
+            }
+        }
+    }
+    
+    return '/aktivasi'
+})
+
+export default router

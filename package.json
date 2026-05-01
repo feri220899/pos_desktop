@@ -11,8 +11,9 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "obfuscate": "node scripts/obfuscate.mjs",
     "start": "electron-vite build && electron-builder",
-    "dist": "electron-vite build && electron-builder"
+    "dist": "electron-vite build && node scripts/obfuscate.mjs && electron-builder"
   },
   "keywords": [],
   "license": "ISC",
@@ -23,24 +24,31 @@
     "electron": "^41.3.0",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
+    "javascript-obfuscator": "^5.4.2",
     "tailwindcss": "^4.2.4"
   },
   "dependencies": {
     "axios": "^1.15.2",
+    "jsonwebtoken": "^9.0.3",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6"
   },
-  "build": {                                                                                                                                                                                  
-      "appId": "com.pos.desktop",
-      "productName": "POS Desktop",                                                                                                                                                           
-      "directories": {                                                                                                                                                                        
-          "output": "dist"
-      },                                                                                                                                                                                      
-      "linux": {                           
-          "target": ["AppImage", "deb"]
-      },
-      "win": {                                                                                                                                                                                
-          "target": ["nsis"]
-      }                                                                                                                                                                                       
-  }         
+  "build": {
+    "appId": "com.pos.desktop",
+    "productName": "POS Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
+  }
 }

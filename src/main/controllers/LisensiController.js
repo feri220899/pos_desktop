@@ -1,6 +1,6 @@
 import LisensiService from '../services/LisensiService'
 
-async function aktivasi(key, deviceId) {
+async function aktivasi(key, deviceId) {    
     if (!key || !deviceId) {
         return { success: false, message: 'License key dan device ID wajib diisi.' }
     }
@@ -35,4 +35,9 @@ async function deaktivasi(key, deviceId) {
     }
 }
 
-export default { aktivasi, validasi, deaktivasi }
+function verifyToken(token) {    
+    if (!token) return { valid: false, expired: false, daysLeft: 0 }
+    return LisensiService.verifyToken(token)
+}
+
+export default { aktivasi, validasi, deaktivasi, verifyToken }

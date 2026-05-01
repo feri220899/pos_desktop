@@ -2,31 +2,44 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const router     = useRouter()
+const router = useRouter()
 const licenseKey = ref('')
-const error      = ref('')
-const loading    = ref(false)
+const error = ref('')
+const loading = ref(false)
 
 onMounted(async () => {
     const savedKey = await window.api.config.get('license_key')
     const deviceId = await window.api.device.getId()
-    
+
     if (savedKey) {
         const result = await window.api.lisensi.validasi(savedKey, deviceId)
-        if (result.valid) router.replace('/dashboard')
+        
+        if (result.valid) {
+            if (result.token) {                
+                await window.api.config.set('license_token', result.token)
+                await window.api.config.set('last_validated_at', Date.now())
+            }
+            router.replace('/dashboard')
+        }
     }
 })
 
 async function aktivasi() {
     if (!licenseKey.value.trim()) return
+    
     loading.value = true
-    error.value   = ''
+    error.value = ''
 
     const deviceId = await window.api.device.getId()
-    const result   = await window.api.lisensi.aktivasi(licenseKey.value.trim(), deviceId)
-
+    
+    const result = await window.api.lisensi.aktivasi(licenseKey.value.trim(), deviceId)
+    
     if (result.success) {
         await window.api.config.set('license_key', licenseKey.value.trim())
+        if (result.token) {
+            await window.api.config.set('license_token', result.token)
+            await window.api.config.set('last_validated_at', Date.now())
+        }
         router.replace('/dashboard')
     } else {
         error.value = result.message || 'Aktivasi gagal.'
@@ -46,10 +59,9 @@ async function aktivasi() {
                     <span class="text-sm">{{ error }}</span>
                 </div>
 
-                <input v-model="licenseKey" type="text"
-                       placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
-                       class="input input-bordered w-full text-center tracking-widest"
-                       maxlength="23" @keyup.enter="aktivasi"/>
+                <input v-model="licenseKey" type="text" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
+                    class="input input-bordered w-full text-center tracking-widest" maxlength="23"
+                    @keyup.enter="aktivasi" />
 
                 <button @click="aktivasi" class="btn btn-primary w-full" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-sm"></span>
