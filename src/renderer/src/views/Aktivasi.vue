@@ -2,10 +2,14 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const router = useRouter()
+const router     = useRouter()
 const licenseKey = ref('')
-const error = ref('')
-const loading = ref(false)
+const error      = ref('')
+const loading    = ref(false)
+
+function bukaTrial() {
+    window.api.openBrowser('https://lisansi.test')
+}
 
 onMounted(async () => {
     const savedKey = await window.api.config.get('license_key')
@@ -13,9 +17,8 @@ onMounted(async () => {
 
     if (savedKey) {
         const result = await window.api.lisensi.validasi(savedKey, deviceId)
-        
         if (result.valid) {
-            if (result.token) {                
+            if (result.token) {
                 await window.api.config.set('license_token', result.token)
                 await window.api.config.set('last_validated_at', Date.now())
             }
@@ -26,14 +29,12 @@ onMounted(async () => {
 
 async function aktivasi() {
     if (!licenseKey.value.trim()) return
-    
     loading.value = true
-    error.value = ''
+    error.value   = ''
 
     const deviceId = await window.api.device.getId()
-    
-    const result = await window.api.lisensi.aktivasi(licenseKey.value.trim(), deviceId)
-    
+    const result   = await window.api.lisensi.aktivasi(licenseKey.value.trim(), deviceId)
+
     if (result.success) {
         await window.api.config.set('license_key', licenseKey.value.trim())
         if (result.token) {
@@ -42,7 +43,7 @@ async function aktivasi() {
         }
         router.replace('/dashboard')
     } else {
-        error.value = result.message || 'Aktivasi gagal.'
+        error.value = result.pesan || result.message || 'Aktivasi gagal.'
     }
     loading.value = false
 }
@@ -66,6 +67,12 @@ async function aktivasi() {
                 <button @click="aktivasi" class="btn btn-primary w-full" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-sm"></span>
                     {{ loading ? 'Memproses...' : 'Aktivasi' }}
+                </button>
+
+                <div class="divider text-xs text-base-content/40 my-0">atau</div>
+
+                <button @click="bukaTrial" class="btn btn-ghost btn-sm w-full">
+                    Coba Gratis 7 Hari
                 </button>
             </div>
         </div>

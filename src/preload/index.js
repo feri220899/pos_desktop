@@ -14,4 +14,5 @@ contextBridge.exposeInMainWorld('api', {
     device: {
         getId: () => ipcRenderer.invoke('device:getId'),
     },
+    openBrowser: (url) => ipcRenderer.invoke('shell:openExternal', url),
 })

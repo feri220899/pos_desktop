@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import { join } from 'path'
 import routes from './routes'
 
@@ -31,6 +31,7 @@ app.whenReady().then(() => {
     routes.forEach(({ channel, handler }) => {
         ipcMain.handle(channel, (_, ...args) => handler(...args))
     })
+    ipcMain.handle('shell:openExternal', (_, url) => shell.openExternal(url))
     createWindow()
 })
 
