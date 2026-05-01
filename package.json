@@ -1,0 +1,46 @@
+{
+  "name": "pos-desktop",
+  "version": "1.0.0",
+  "description": "Aplikasi POS Desktop offline-first",
+  "homepage": "https://pos.desktop",
+  "author": {
+    "name": "BPH Migas",
+    "email": "feri@bphmigas.com"
+  },
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite build && electron-builder",
+    "dist": "electron-vite build && electron-builder"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.4",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "daisyui": "^5.5.19",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^5.0.0",
+    "tailwindcss": "^4.2.4"
+  },
+  "dependencies": {
+    "axios": "^1.15.2",
+    "vue": "^3.5.33",
+    "vue-router": "^5.0.6"
+  },
+  "build": {                                                                                                                                                                                  
+      "appId": "com.pos.desktop",
+      "productName": "POS Desktop",                                                                                                                                                           
+      "directories": {                                                                                                                                                                        
+          "output": "dist"
+      },                                                                                                                                                                                      
+      "linux": {                           
+          "target": ["AppImage", "deb"]
+      },
+      "win": {                                                                                                                                                                                
+          "target": ["nsis"]
+      }                                                                                                                                                                                       
+  }         
+}
