@@ -1,7 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import apibackend from '../services/api.js'
 
 const produk = ref([])
+
+onMounted(async () => {
+    try {
+        const response = await apibackend.get('/api/produk')
+        
+        produk.value = response.data
+    } catch (error) {
+        console.error('Error fetching produk:', error)
+    }
+})
+
 </script>
 
 <template>

@@ -1,5 +1,10 @@
 function index(req, res) {
-    res.json([])
+    const produkList = [
+        { id: 1, nama: 'Produk A', harga: 10000 },
+        { id: 2, nama: 'Produk B', harga: 20000 },
+        { id: 3, nama: 'Produk C', harga: 30000 },
+    ]
+    res.json(produkList, 200)
 }
 
 function store(req, res) {

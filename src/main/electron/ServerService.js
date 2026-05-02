@@ -1,9 +1,11 @@
 import express from 'express'
+import cors from 'cors'
 import ConfigService from './ConfigService'
 
 const app = express()
 let server = null
 
+app.use(cors())
 app.use(express.json())
 
 app.get('/ping', (_, res) => res.json({ ok: true }))
@@ -27,5 +29,5 @@ function stop() {
     })
 }
 
-export { app }
+export { app as expressApp }
 export default { start, stop }

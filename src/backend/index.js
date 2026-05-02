@@ -1,4 +1,6 @@
-import { app } from '../main/electron/ServerService'
-import produkRoutes from './routes/produk'
+import { mainRouter } from './config/Route'
+import './router/router'
 
-app.use('/api/produk', produkRoutes)
+export default function registerRoutes(app) {
+    app.use(mainRouter)
+}

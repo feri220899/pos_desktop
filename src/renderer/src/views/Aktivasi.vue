@@ -29,7 +29,10 @@ onMounted(async () => {
 })
 
 async function aktivasi() {
-    if (!licenseKey.value.trim()) return
+    if (!licenseKey.value.trim()) {
+        error.value = 'License key tidak boleh kosong.'
+        return
+    }
     loading.value = true
     error.value   = ''
 

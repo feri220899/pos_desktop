@@ -4,8 +4,10 @@ import LisensiService   from './electron/LisensiService'
 import ConfigService    from './electron/ConfigService'
 import DeviceService    from './electron/DeviceService'
 import DiscoveryService from './electron/DiscoveryService'
-import ServerService    from './electron/ServerService'
-import '../backend/index.js'
+import ServerService, { expressApp } from './electron/ServerService'
+import registerRoutes                from '../backend/index.js'
+
+registerRoutes(expressApp)
 
 // ─── Window ──────────────────────────────────────────────────────────────────
 
