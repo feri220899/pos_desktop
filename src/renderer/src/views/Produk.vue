@@ -19,7 +19,7 @@ onMounted(async () => {
     <div>
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-xl font-bold">Produk</h1>
-            <button class="btn btn-primary btn-sm">+ Tambah Produk</button>
+            <button className="btn btn-neutral">Neutral</button>
         </div>
 
         <div class="overflow-x-auto bg-base-100 rounded-box shadow">

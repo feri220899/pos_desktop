@@ -9,12 +9,9 @@ const hasLayout = computed(() => route.meta.layout !== false)
 </script>
 
 <template>
-    <!-- Halaman tanpa sidebar (aktivasi, dll) -->
     <RouterView v-if="!hasLayout" />
 
-    <!-- Shell utama -->
-     
-    <div v-else class="flex h-screen bg-base-200">
+    <div v-else class="flex h-screen overflow-hidden bg-base-200/50">
         <AppSidebar />
         <div class="flex flex-col flex-1 overflow-hidden">
             <AppHeader />
