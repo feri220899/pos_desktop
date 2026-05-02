@@ -1,12 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import apibackend from '../services/api.js'
+import ProdukApi from '../services/ProdukApi.js'
 
 const produk = ref([])
 
 onMounted(async () => {
     try {
-        const response = await apibackend.get('/api/produk')        
+        const response = await ProdukApi.getProduk()
         produk.value = response.data.data
     } catch (error) {
         console.error('Error fetching produk:', error)
