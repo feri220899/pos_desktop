@@ -28,6 +28,7 @@ export default defineConfig({
         plugins: [externalizeDepsPlugin()],
     },
     preload: {
+        input: 'src/preload/preload.js',
         plugins: [externalizeDepsPlugin()],
     },
     renderer: {

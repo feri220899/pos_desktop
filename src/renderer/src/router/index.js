@@ -1,8 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Setup     from '../views/Setup.vue'
-import Aktivasi  from '../views/Aktivasi.vue'
-import Dashboard from '../views/Dashboard.vue'
-import Produk    from '../views/Produk.vue'
+import Setup      from '../views/Setup.vue'
+import Aktivasi   from '../views/Aktivasi.vue'
+import Dashboard  from '../views/Dashboard.vue'
+import Produk     from '../views/Produk.vue'
+import LisensiApi from '../services/LisensiApi'
 
 const routes = [
     { path: '/',          redirect: '/aktivasi' },
@@ -22,7 +23,7 @@ async function renewInBackground() {
         const key      = await window.api.config.get('license_key')
         const deviceId = await window.api.device.getId()
         if (!key) return
-        const result = await window.api.lisensi.validasi(key, deviceId)
+        const result = await LisensiApi.validasi(key, deviceId)
         if (result.token) {
             await window.api.config.set('license_token', result.token)
             await window.api.config.set('last_validated_at', Date.now())

@@ -1,9 +1,13 @@
 import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import { join } from 'path'
-import routes from './routes'
-import ConfigService from './services/ConfigService'
-import DiscoveryService from './services/DiscoveryService'
-import ServerService from './services/ServerService'
+import LisensiService   from './electron/LisensiService'
+import ConfigService    from './electron/ConfigService'
+import DeviceService    from './electron/DeviceService'
+import DiscoveryService from './electron/DiscoveryService'
+import ServerService    from './electron/ServerService'
+import '../backend/index.js'
+
+// ─── Window ──────────────────────────────────────────────────────────────────
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -12,7 +16,7 @@ function createWindow() {
         minWidth: 1024,
         minHeight: 600,
         webPreferences: {
-            preload: join(__dirname, '../preload/index.js'),
+            preload: join(__dirname, '../preload/preload.js'),
         },
     })
 
@@ -30,30 +34,44 @@ function createWindow() {
     }
 }
 
-app.whenReady().then(() => {
-    routes.forEach(({ channel, handler }) => {
-        ipcMain.handle(channel, (_, ...args) => handler(...args))
-    })
-    ipcMain.handle('shell:openExternal', (_, url) => shell.openExternal(url))
+// ─── IPC + App ───────────────────────────────────────────────────────────────
 
-    ipcMain.on('discovery:advertise', () => DiscoveryService.advertise())
+app.whenReady().then(() => {
+
+    // Lisensi — verifyToken saja, aktivasi/validasi langsung dari renderer ke Laravel
+    ipcMain.handle('lisensi:verifyToken', (_, token)      => LisensiService.verifyToken(token))
+
+    // Config lokal — dibutuhkan sebelum Express tersedia
+    ipcMain.handle('config:get',          (_, key)        => ConfigService.get(key))
+    ipcMain.handle('config:set',          (_, key, value) => ConfigService.set(key, value))
+
+    // Device ID — untuk aktivasi lisensi
+    ipcMain.handle('device:getId',        ()              => DeviceService.getId())
+
+    // Shell — buka URL di browser default
+    ipcMain.handle('shell:openExternal',  (_, url)        => shell.openExternal(url))
+
+    // Discovery — pakai ipcMain.on karena butuh event.sender untuk push balik ke renderer
+    ipcMain.on('discovery:advertise', ()      => DiscoveryService.advertise())
+    ipcMain.on('discovery:stopScan',  ()      => DiscoveryService.stopScan())
     ipcMain.on('discovery:scan', (event) => {
-        DiscoveryService.scan((master) => {
-            event.sender.send('discovery:found', master)
-        })
+        DiscoveryService.scan((master) => event.sender.send('discovery:found', master))
     })
-    ipcMain.on('discovery:stopScan', () => DiscoveryService.stopScan())
+
+    // Server — start on-demand dari setup screen
+    ipcMain.on('server:start', () => ServerService.start())
 
     createWindow()
 
-    ipcMain.on('server:start', () => ServerService.start())
-
+    // Kalau sudah pernah setup sebagai master, langsung start server & broadcast
     const appMode = ConfigService.get('app_mode')
     if (appMode === 'master') {
         ServerService.start()
         DiscoveryService.advertise()
     }
 })
+
+// ─── Lifecycle ───────────────────────────────────────────────────────────────
 
 app.on('before-quit', () => {
     DiscoveryService.destroy()

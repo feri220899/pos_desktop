@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import LisensiApi from '../services/LisensiApi'
 
 const router     = useRouter()
 const licenseKey = ref('')
@@ -16,7 +17,7 @@ onMounted(async () => {
     const deviceId = await window.api.device.getId()
 
     if (savedKey) {
-        const result = await window.api.lisensi.validasi(savedKey, deviceId)
+        const result = await LisensiApi.validasi(savedKey, deviceId)
         if (result.valid) {
             if (result.token) {
                 await window.api.config.set('license_token', result.token)
@@ -33,7 +34,7 @@ async function aktivasi() {
     error.value   = ''
 
     const deviceId = await window.api.device.getId()
-    const result   = await window.api.lisensi.aktivasi(licenseKey.value.trim(), deviceId)
+    const result   = await LisensiApi.aktivasi(licenseKey.value.trim(), deviceId)
 
     if (result.success) {
         await window.api.config.set('license_key', licenseKey.value.trim())
