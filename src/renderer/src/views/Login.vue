@@ -1,73 +1,150 @@
 <template>
-    <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
-        <div class="card bg-base-100 shadow-xl w-full max-w-sm">
-            <div class="card-body gap-5">
+    <div class="flex h-screen">
 
-                <!-- Header -->
-                <div class="text-center">
-                    <div class="btn btn-primary btn-square no-animation pointer-events-none mx-auto mb-3">
-                        <LayoutGrid class="size-5" />
+        <!-- Left Panel -->
+        <div data-theme="night" class="hidden lg:flex w-2/5 bg-base-100 flex-col justify-between p-10 relative overflow-hidden">
+
+            <!-- Decorative circles -->
+            <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-primary/10 pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-primary/5 pointer-events-none"></div>
+
+            <!-- Logo -->
+            <div class="relative z-10 flex items-center gap-3">
+                <div class="btn btn-primary btn-square btn-sm no-animation pointer-events-none">
+                    <LayoutGrid class="size-4" />
+                </div>
+                <span class="font-bold text-base-content">POS Desktop</span>
+            </div>
+
+            <!-- Center content -->
+            <div class="relative z-10">
+                <h1 class="text-3xl font-bold text-base-content leading-tight mb-4">
+                    Kelola bisnis<br/>lebih mudah
+                </h1>
+                <p class="text-base-content/50 text-sm leading-relaxed mb-8">
+                    Sistem kasir modern dengan manajemen produk, laporan real-time, dan dukungan multi kasir.
+                </p>
+                <div class="space-y-3">
+                    <div v-for="item in features" :key="item" class="flex items-center gap-3">
+                        <div class="size-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                            <Check class="size-3 text-primary" />
+                        </div>
+                        <span class="text-sm text-base-content/60">{{ item }}</span>
                     </div>
-                    <h1 class="text-xl font-bold">POS Desktop</h1>
-                    <p class="text-sm text-base-content/50 mt-1">Masuk ke akun Anda</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="relative z-10 text-xs text-base-content/20">
+                &copy; {{ year }} POS Desktop
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="flex-1 flex items-center justify-center bg-base-200 p-8">
+            <div class="w-full max-w-sm">
+
+                <!-- Mobile logo -->
+                <div class="lg:hidden flex items-center justify-center gap-2 mb-8">
+                    <div class="btn btn-primary btn-square btn-sm no-animation pointer-events-none">
+                        <LayoutGrid class="size-4" />
+                    </div>
+                    <span class="font-bold text-lg">POS Desktop</span>
+                </div>
+
+                <!-- Heading -->
+                <div class="mb-7">
+                    <h2 class="text-2xl font-bold text-base-content">Selamat datang!</h2>
+                    <p class="text-base-content/50 text-sm mt-1">Masuk untuk melanjutkan ke aplikasi</p>
                 </div>
 
                 <!-- Form -->
                 <form @submit.prevent="submit" class="space-y-4">
-                    <fieldset :disabled="loading" class="space-y-4">
 
-                        <label class="form-control">
-                            <span class="label-text mb-1 font-medium">Username</span>
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-base-content">Username</label>
+                        <label class="input input-bordered flex items-center gap-2 w-full" :class="{ 'input-disabled': loading }">
+                            <User class="size-4 text-base-content/30 shrink-0" />
                             <input
                                 v-model="form.username"
                                 type="text"
+                                class="grow"
                                 placeholder="Masukkan username"
-                                class="input input-bordered w-full"
                                 autocomplete="username"
                                 autofocus
+                                :disabled="loading"
                             />
                         </label>
+                    </div>
 
-                        <label class="form-control">
-                            <span class="label-text mb-1 font-medium">Password</span>
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-base-content">Password</label>
+                        <label class="input input-bordered flex items-center gap-2 w-full" :class="{ 'input-disabled': loading }">
+                            <Lock class="size-4 text-base-content/30 shrink-0" />
                             <input
                                 v-model="form.password"
-                                type="password"
+                                :type="showPass ? 'text' : 'password'"
+                                class="grow"
                                 placeholder="Masukkan password"
-                                class="input input-bordered w-full"
                                 autocomplete="current-password"
+                                :disabled="loading"
                             />
+                            <button
+                                type="button"
+                                @click="showPass = !showPass"
+                                class="text-base-content/30 hover:text-base-content transition-colors"
+                                tabindex="-1"
+                            >
+                                <EyeOff v-if="showPass" class="size-4" />
+                                <Eye     v-else          class="size-4" />
+                            </button>
                         </label>
+                    </div>
 
-                        <div v-if="error" class="alert alert-error py-2 text-sm">
-                            {{ error }}
-                        </div>
+                    <div v-if="error" role="alert" class="alert alert-error py-2.5 text-sm gap-2">
+                        <AlertCircle class="size-4 shrink-0" />
+                        {{ error }}
+                    </div>
 
-                        <button type="submit" class="btn btn-primary w-full" :class="{ loading }">
-                            <span v-if="!loading">Masuk</span>
-                            <span v-else>Memproses...</span>
-                        </button>
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-full mt-2"
+                        :disabled="loading"
+                    >
+                        <span v-if="loading" class="loading loading-spinner loading-sm"></span>
+                        {{ loading ? 'Memproses...' : 'Masuk' }}
+                    </button>
 
-                    </fieldset>
                 </form>
 
+                <p class="text-center text-xs text-base-content/25 mt-10">v1.0.0</p>
             </div>
         </div>
+
     </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { LayoutGrid } from 'lucide-vue-next'
+import { LayoutGrid, User, Lock, Eye, EyeOff, AlertCircle, Check } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 
 const router    = useRouter()
 const authStore = useAuthStore()
 
-const form    = ref({ username: '', password: '' })
-const loading = ref(false)
-const error   = ref('')
+const form     = ref({ username: '', password: '' })
+const loading  = ref(false)
+const error    = ref('')
+const showPass = ref(false)
+const year     = new Date().getFullYear()
+
+const features = [
+    'Manajemen produk & stok',
+    'Laporan penjualan real-time',
+    'Multi kasir & multi role',
+    'Mode master & client (LAN)',
+]
 
 async function submit() {
     error.value   = ''
