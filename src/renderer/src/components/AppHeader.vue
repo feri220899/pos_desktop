@@ -1,7 +1,20 @@
 <template>
     <header class="navbar bg-base-100 border-b border-base-200 min-h-16 px-6 shrink-0">
         <div class="navbar-start">
-            <span class="font-semibold text-base-content">{{ pageTitle }}</span>
+            <div class="breadcrumbs text-sm py-0">
+                <ul>
+                    <li v-for="(crumb, i) in breadcrumbs" :key="i">
+                        <router-link v-if="crumb.to" :to="crumb.to" class="text-base-content/50 hover:text-base-content gap-1.5">
+                            <component v-if="crumb.icon" :is="crumb.icon" class="size-3.5 shrink-0" />
+                            {{ crumb.label }}
+                        </router-link>
+                        <span v-else class="font-semibold text-base-content gap-1.5 flex items-center">
+                            <component v-if="crumb.icon" :is="crumb.icon" class="size-3.5 shrink-0" />
+                            {{ crumb.label }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
         </div>
         <div class="navbar-end gap-4">
             <span class="text-sm text-base-content/60 font-mono">{{ time }}</span>
@@ -42,6 +55,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { LogOut, ChevronDown } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
+import { buildBreadcrumbs } from '../config/menu'
 
 const route     = useRoute()
 const router    = useRouter()
@@ -50,17 +64,9 @@ const authStore = useAuthStore()
 const time   = ref('')
 const online = ref(navigator.onLine)
 
-const titles = {
-    '/kasir':      'Kasir',
-    '/dashboard':  'Dashboard',
-    '/produk':     'Produk',
-    '/transaksi':  'Transaksi',
-    '/laporan':    'Laporan',
-    '/pengaturan': 'Pengaturan',
-}
+const breadcrumbs = computed(() => buildBreadcrumbs(route.path))
 
-const pageTitle = computed(() => titles[route.path] ?? '')
-const initials  = computed(() => {
+const initials = computed(() => {
     const name = authStore.user?.username ?? ''
     return name.slice(0, 2).toUpperCase()
 })
