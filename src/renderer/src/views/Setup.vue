@@ -1,95 +1,145 @@
 <template>
-    <div class="min-h-screen bg-base-200 flex items-center justify-center">
-        <div class="card bg-base-100 shadow-xl w-full max-w-md">
+    <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+        <div class="card bg-base-100 shadow-xl w-full max-w-lg">
             <div class="card-body gap-6">
 
+                <!-- Header -->
                 <div class="text-center">
-                    <h1 class="text-2xl font-bold">Setup Awal</h1>
-                    <p class="text-base-content/60 mt-1">Pilih mode aplikasi untuk perangkat ini</p>
+                    <h1 class="card-title justify-center text-2xl">Pengaturan Awal Kasir</h1>
+                    <p class="text-base-content/60 text-sm mt-1">Tentukan peran komputer ini dalam sistem kasir Anda</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <button
-                        class="btn btn-outline h-auto py-6 flex-col gap-2"
-                        :class="{ 'btn-primary': mode === 'master' }"
-                        @click="pilihMode('master')"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                        <span class="font-semibold">Master</span>
-                        <span class="text-xs font-normal opacity-70">Simpan database lokal</span>
-                    </button>
+                <!-- Steps -->
+                <ul class="steps steps-horizontal w-full text-xs">
+                    <li class="step" :class="mode ? 'step-primary' : ''">Pilih Peran</li>
+                    <li class="step" :class="bisa ? 'step-primary' : ''">Konfigurasi</li>
+                    <li class="step">Selesai</li>
+                </ul>
 
-                    <button
-                        class="btn btn-outline h-auto py-6 flex-col gap-2"
-                        :class="{ 'btn-primary': mode === 'client' }"
-                        @click="pilihMode('client')"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span class="font-semibold">Client</span>
-                        <span class="text-xs font-normal opacity-70">Konek ke master</span>
-                    </button>
+                <!-- Mode selection: radio cards -->
+                <div class="grid grid-cols-2 gap-3">
+
+                    <label class="card card-border border-2 cursor-pointer transition-colors has-checked:border-primary has-checked:bg-primary/5">
+                        <div class="card-body items-center gap-2 py-5">
+                            <input type="radio" name="mode" class="hidden" value="master" v-model="mode" @change="pilihMode('master')" />
+                            <Server class="size-8" :class="mode === 'master' ? 'text-primary' : 'text-base-content/40'" />
+                            <div class="text-center">
+                                <p class="font-bold text-sm">Kasir Utama</p>
+                                <p class="text-xs text-base-content/50 mt-0.5 leading-relaxed">Menyimpan semua data &amp; laporan</p>
+                            </div>
+                            <div class="badge badge-primary badge-sm" v-if="mode === 'master'">Dipilih</div>
+                        </div>
+                    </label>
+
+                    <label class="card card-border border-2 cursor-pointer transition-colors has-checked:border-primary has-checked:bg-primary/5">
+                        <div class="card-body items-center gap-2 py-5">
+                            <input type="radio" name="mode" class="hidden" value="client" v-model="mode" @change="pilihMode('client')" />
+                            <Monitor class="size-8" :class="mode === 'client' ? 'text-primary' : 'text-base-content/40'" />
+                            <div class="text-center">
+                                <p class="font-bold text-sm">Kasir Tambahan</p>
+                                <p class="text-xs text-base-content/50 mt-0.5 leading-relaxed">Terhubung ke kasir utama via WiFi</p>
+                            </div>
+                            <div class="badge badge-primary badge-sm" v-if="mode === 'client'">Dipilih</div>
+                        </div>
+                    </label>
+
+                </div>
+
+                <!-- Info alert -->
+                <div v-if="mode === 'master'" role="alert" class="alert alert-info alert-soft text-sm py-2.5">
+                    <Info class="size-4 shrink-0 opacity-70" />
+                    <span>Kasir utama harus <strong>selalu menyala</strong> agar kasir tambahan bisa beroperasi.</span>
+                </div>
+
+                <div v-if="mode === 'client'" role="alert" class="alert alert-warning alert-soft text-sm py-2.5">
+                    <AlertTriangle class="size-4 shrink-0" />
+                    <span class="text-yellow-500">Pastikan kasir utama sudah menyala dan terhubung ke <strong>WiFi yang sama.</strong></span>
                 </div>
 
                 <!-- Master: port config -->
-                <div v-if="mode === 'master'" class="form-control gap-1">
-                    <label class="label">
-                        <span class="label-text">Port Server</span>
-                        <span class="label-text-alt opacity-60">default: 3001</span>
-                    </label>
-                    <input v-model="port" type="number" placeholder="3001" class="input input-bordered" />
+                <div v-if="mode === 'master'" class="card card-border border-2">
+                    <div class="card-body py-4 px-4 flex-row items-center gap-4">
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm">Port Server</p>
+                            <p class="text-xs text-base-content/50 mt-0.5">Nomor yang dipakai kasir tambahan untuk terhubung. Biarkan <strong>3001</strong> jika tidak yakin.</p>
+                        </div>
+                        <fieldset class="fieldset p-0 w-28 shrink-0">
+                            <input
+                                v-model="port"
+                                type="number"
+                                placeholder="3001"
+                                class="input input-bordered w-full text-center"
+                            />
+                        </fieldset>
+                    </div>
                 </div>
 
-                <!-- Client: auto discovery -->
+                <!-- Client: discovery -->
                 <div v-if="mode === 'client'" class="flex flex-col gap-3">
+
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium">Master tersedia di jaringan</span>
+                        <div>
+                            <p class="font-semibold text-sm">Cari Kasir Utama</p>
+                            <p class="text-xs text-base-content/50">Kasir utama aktif di jaringan WiFi Anda</p>
+                        </div>
                         <button class="btn btn-sm btn-ghost" :disabled="scanning" @click="startScan">
                             <span v-if="scanning" class="loading loading-spinner loading-xs"></span>
-                            <span v-else>↻</span>
-                            Scan
+                            <RefreshCw v-else class="size-4" />
+                            Cari Ulang
                         </button>
                     </div>
 
-                    <div v-if="scanning && masters.length === 0" class="flex items-center gap-2 text-sm text-base-content/60">
-                        <span class="loading loading-dots loading-sm"></span>
-                        Mencari master di jaringan...
+                    <!-- Scanning -->
+                    <div v-if="scanning && masters.length === 0" class="flex flex-col items-center gap-2 py-8">
+                        <span class="loading loading-dots loading-md text-primary"></span>
+                        <p class="text-sm text-base-content/60">Sedang mencari kasir utama...</p>
                     </div>
 
-                    <div v-if="!scanning && masters.length === 0" class="text-sm text-base-content/60 text-center py-4">
-                        Tidak ada master ditemukan
+                    <!-- Empty -->
+                    <div v-if="!scanning && masters.length === 0" role="alert" class="alert">
+                        <WifiOff class="size-5 text-base-content/40" />
+                        <div>
+                            <p class="font-semibold text-sm">Tidak ada kasir utama ditemukan</p>
+                            <p class="text-xs text-base-content/50">Nyalakan kasir utama lalu klik "Cari Ulang"</p>
+                        </div>
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <button
+                    <!-- Master list -->
+                    <div v-if="masters.length > 0" class="flex flex-col gap-2">
+                        <p class="text-xs text-base-content/50 font-medium">Pilih kasir utama yang ingin dihubungkan:</p>
+                        <label
                             v-for="m in masters"
                             :key="m.ip + m.port"
-                            class="btn btn-outline justify-start gap-3"
-                            :class="{ 'btn-primary': selectedMaster?.ip === m.ip }"
-                            @click="selectedMaster = m"
+                            class="card card-border border-2 cursor-pointer transition-colors has-checked:border-primary has-checked:bg-primary/5"
                         >
-                            <span class="size-2 rounded-full bg-success"></span>
-                            <span>{{ m.name }}</span>
-                            <span class="text-xs opacity-60 ml-auto">{{ m.ip }}:{{ m.port }}</span>
-                        </button>
+                            <div class="card-body flex-row items-center gap-3 py-3 px-4">
+                                <input type="radio" name="master" class="radio radio-primary radio-sm" :value="m" v-model="selectedMaster" />
+                                <div class="flex-1">
+                                    <p class="font-semibold text-sm">{{ m.name }}</p>
+                                    <p class="text-xs text-base-content/50">{{ m.ip }} · Port {{ m.port }}</p>
+                                </div>
+                                <div class="badge badge-success badge-soft gap-1.5">
+                                    <span class="size-1.5 rounded-full bg-success inline-block"></span>
+                                    Online
+                                </div>
+                            </div>
+                        </label>
                     </div>
+
                 </div>
 
-                <div v-if="error" class="alert alert-error">
-                    <span>{{ error }}</span>
+                <!-- Error -->
+                <div v-if="error" role="alert" class="alert alert-error">
+                    <AlertCircle class="size-4 shrink-0" />
+                    <span class="text-sm">{{ error }}</span>
                 </div>
 
-                <button
-                    class="btn btn-primary"
-                    :disabled="!bisa || loading"
-                    @click="simpan"
-                >
+                <!-- Submit -->
+                <button class="btn btn-primary w-full" :disabled="!bisa || loading" @click="simpan">
                     <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                    Simpan & Lanjutkan
+                    {{ loading ? 'Menyimpan...' : 'Simpan & Lanjutkan' }}
                 </button>
+
             </div>
         </div>
     </div>
@@ -98,6 +148,7 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Server, Monitor, Info, AlertTriangle, AlertCircle, RefreshCw, WifiOff } from 'lucide-vue-next'
 
 const router = useRouter()
 
@@ -116,7 +167,6 @@ const bisa = computed(() => {
 })
 
 function pilihMode(m) {
-    mode.value = m
     if (m === 'client') startScan()
 }
 
@@ -153,7 +203,7 @@ async function simpan() {
 
         router.push('/aktivasi')
     } catch {
-        error.value = 'Gagal menyimpan konfigurasi.'
+        error.value = 'Gagal menyimpan konfigurasi. Coba lagi.'
     } finally {
         loading.value = false
     }
