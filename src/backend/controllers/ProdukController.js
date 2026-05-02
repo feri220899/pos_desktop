@@ -1,21 +1,21 @@
+import Produk from '../models/Produk'
+
 function index(req, res) {
-    const produkList = [
-        { id: 1, nama: 'Produk A', harga: 10000 },
-        { id: 2, nama: 'Produk B', harga: 20000 },
-        { id: 3, nama: 'Produk C', harga: 30000 },
-    ]
-    res.json(produkList, 200)
+    res.json({ success: true, data: Produk.all() })
 }
 
 function store(req, res) {
-    res.status(201).json({})
+    const result = Produk.create(req.body)
+    res.status(201).json({ success: true, data: { id: result.lastInsertRowid } })
 }
 
 function update(req, res) {
-    res.json({})
+    Produk.update(req.params.id, req.body)
+    res.json({ success: true })
 }
 
 function destroy(req, res) {
+    Produk.delete(req.params.id)
     res.status(204).send()
 }
 

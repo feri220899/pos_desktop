@@ -5,6 +5,7 @@ import ConfigService    from './electron/ConfigService'
 import DeviceService    from './electron/DeviceService'
 import DiscoveryService from './electron/DiscoveryService'
 import ServerService, { expressApp } from './electron/ServerService'
+import DatabaseService               from '../backend/config/DatabaseService'
 import registerRoutes                from '../backend/index.js'
 
 registerRoutes(expressApp)
@@ -68,6 +69,7 @@ app.whenReady().then(() => {
     // Kalau sudah pernah setup sebagai master, langsung start server & broadcast
     const appMode = ConfigService.get('app_mode')
     if (appMode === 'master') {
+        DatabaseService.connect()
         ServerService.start()
         DiscoveryService.advertise()
     }
