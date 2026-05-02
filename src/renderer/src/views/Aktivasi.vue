@@ -42,7 +42,7 @@
 
         <!-- Right Panel -->
         <div class="flex-1 flex items-center justify-center bg-base-200 p-6">
-           <div class="w-full max-w-lg bg-base-100/30 p-8 rounded-2xl shadow-sm">
+            <div class="w-full max-w-lg bg-base-100/30 p-8 rounded-2xl shadow-sm">
 
                 <!-- Mobile logo -->
                 <div class="lg:hidden flex items-center justify-center gap-2 mb-8">
@@ -59,35 +59,48 @@
                 </div>
 
                 <!-- Form -->
-                <div class="space-y-4">
+                <div class="space-y-5">
 
-                    <div class="space-y-1.5">
+                    <div class="space-y-3">
                         <label class="text-sm font-medium text-base-content">License Key</label>
-                        <label class="input input-bordered flex items-center gap-2 w-full" :class="{ 'input-error': error, 'input-disabled': loading }">
-                            <KeyRound class="size-4 text-base-content/30 shrink-0" />
-                            <input
-                                v-model="licenseKey"
-                                type="text"
-                                placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
-                                class="grow tracking-widest font-mono text-sm uppercase"
-                                maxlength="23"
-                                :disabled="loading"
-                                @keyup.enter="aktivasi"
-                            />
-                        </label>
-                        <p class="text-sm mt-1" :class="error ? 'text-error' : 'validator text-base-content/40'">
+
+                        <!-- Kotak-kotak input -->
+                        <div class="flex items-center gap-2">
+                            <template v-for="(_, i) in parts" :key="i">
+                                <input
+                                    :ref="el => inputRefs[i] = el"
+                                    v-model="parts[i]"
+                                    type="text"
+                                    maxlength="5"
+                                    :disabled="loading"
+                                    class="input input-bordered w-full text-center font-mono tracking-widest uppercase text-sm transition-colors"
+                                    :class="{
+                                        'input-error':   !!error,
+                                        'input-success': isComplete && !error,
+                                        'input-primary': parts[i].length === 5 && !isComplete && !error,
+                                    }"
+                                    @input="onInput(i)"
+                                    @keydown="onKeydown($event, i)"
+                                    @paste.prevent="onPaste($event)"
+                                    @focus="$event.target.select()"
+                                />
+                                <span v-if="i < 3" class="text-base-content/30 font-mono font-bold shrink-0">—</span>
+                            </template>
+                        </div>
+
+                        <p class="text-xs" :class="error ? 'text-error' : 'text-base-content/40'">
                             {{ error || 'License key dikirim ke email setelah pembelian' }}
                         </p>
                     </div>
 
-                    <button class="btn btn-primary w-full mt-2" :disabled="loading" @click="aktivasi">
+                    <button class="btn btn-primary w-full" :disabled="loading || !isComplete" @click="aktivasi">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
                         {{ loading ? 'Memproses...' : 'Aktifkan Sekarang' }}
                     </button>
 
-                    <div class="divider text-xs text-base-content/40 my-2">Belum punya lisensi?</div>
+                    <div class="divider text-xs text-base-content/40 my-3">Belum punya lisensi?</div>
 
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-2 gap-2 mt-1">
                         <button class="btn btn-outline w-full gap-2" @click="bukaTrial">
                             <ExternalLink class="size-4" />
                             Coba Gratis 7 Hari
@@ -108,16 +121,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { LayoutGrid, Check, KeyRound, ExternalLink, PackageSearch } from 'lucide-vue-next'
+import { LayoutGrid, Check, ExternalLink, PackageSearch } from 'lucide-vue-next'
 import LisensiApi from '../services/LisensiApi'
 
-const router     = useRouter()
-const licenseKey = ref('')
-const error      = ref('')
-const loading    = ref(false)
-const year       = new Date().getFullYear()
+const router = useRouter()
+const year   = new Date().getFullYear()
+
+const parts     = ref(['', '', '', ''])
+const inputRefs = ref([])
+const error     = ref('')
+const loading   = ref(false)
+
+const licenseKey = computed(() => parts.value.join('-'))
+const isComplete = computed(() => parts.value.every(p => p.length === 5))
 
 const info = [
     'Aktivasi sekali, gunakan selamanya',
@@ -131,6 +149,31 @@ function bukaTrial() {
 
 function bukaParket() {
     window.api.openBrowser('https://lisansi.test/paket-saya')
+}
+
+function onInput(i) {
+    parts.value[i] = parts.value[i].toUpperCase().replace(/[^A-Z0-9]/g, '')
+    error.value = ''
+    if (parts.value[i].length === 5 && i < 3) {
+        inputRefs.value[i + 1]?.focus()
+    }
+}
+
+function onKeydown(e, i) {
+    if (e.key === 'Backspace' && parts.value[i] === '' && i > 0) {
+        inputRefs.value[i - 1]?.focus()
+    }
+    if (e.key === 'Enter' && isComplete.value) {
+        aktivasi()
+    }
+}
+
+function onPaste(e) {
+    const text = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    for (let i = 0; i < 4; i++) {
+        parts.value[i] = text.slice(i * 5, i * 5 + 5)
+    }
+    inputRefs.value[3]?.focus()
 }
 
 onMounted(async () => {
@@ -147,21 +190,23 @@ onMounted(async () => {
             router.replace('/dashboard')
         }
     }
+
+    inputRefs.value[0]?.focus()
 })
 
 async function aktivasi() {
-    if (!licenseKey.value.trim()) {
-        error.value = 'License key tidak boleh kosong.'
+    if (!isComplete.value) {
+        error.value = 'License key harus diisi lengkap.'
         return
     }
     loading.value = true
     error.value   = ''
 
     const deviceId = await window.api.device.getId()
-    const result   = await LisensiApi.aktivasi(licenseKey.value.trim(), deviceId)
+    const result   = await LisensiApi.aktivasi(licenseKey.value, deviceId)
 
     if (result.success) {
-        await window.api.config.set('license_key', licenseKey.value.trim())
+        await window.api.config.set('license_key', licenseKey.value)
         if (result.token) {
             await window.api.config.set('license_token', result.token)
             await window.api.config.set('last_validated_at', Date.now())
