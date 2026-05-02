@@ -1,5 +1,5 @@
 <template>
-    <aside data-theme="light" class="w-64 flex flex-col h-screen shrink-0 bg-base-100 border-r border-base-300">
+    <aside data-theme="night" class="w-64 flex flex-col h-screen shrink-0 bg-base-100 border-r border-base-300">
 
         <!-- Logo -->
         <div class="flex items-center gap-3 px-4 h-16 shrink-0 border-b border-base-300">
@@ -8,14 +8,14 @@
             </div>
             <div>
                 <div class="text-sm font-bold text-base-content leading-tight">POS Desktop</div>
-                <div class="text-xs text-base-content/40">{{ mode === 'master' ? '● Master' : '○ Client' }}</div>
+                <div class="text-xs text-green-400">{{ mode === 'master' ? '● Master' : '○ Client' }}</div>
             </div>
         </div>
 
         <!-- Nav -->
         <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-4">
 
-            <div v-for="section in menu" :key="section.title">
+            <div v-for="section in visibleMenu" :key="section.title">
                 <p class="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-base-content/30">
                     {{ section.title }}
                 </p>
@@ -43,15 +43,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
     LayoutGrid, Monitor, ShoppingBag,
     ClipboardList, BarChart2, Settings
 } from 'lucide-vue-next'
+import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
-const mode  = ref('master')
+const authStore = useAuthStore()
+const mode = ref('master')
 
 function navClass(path) {
     const base = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors'
@@ -60,30 +62,40 @@ function navClass(path) {
         : `${base} text-base-content/70 hover:bg-base-200 hover:text-base-content`
 }
 
-const menu = [
+const allMenu = [
     {
         title: 'Utama',
         items: [
-            { to: '/kasir',     label: 'Kasir',     icon: Monitor      },
-            { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid   },
+            { to: '/kasir', label: 'Kasir', icon: Monitor, permission: 'kasir' },
+            { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid, permission: 'dashboard' },
         ],
     },
     {
         title: 'Manajemen',
         items: [
-            { to: '/produk',    label: 'Produk',    icon: ShoppingBag  },
-            { to: '/transaksi', label: 'Transaksi', icon: ClipboardList },
+            { to: '/produk', label: 'Produk', icon: ShoppingBag, permission: 'produk' },
+            { to: '/transaksi', label: 'Transaksi', icon: ClipboardList, permission: 'transaksi' },
         ],
     },
     {
         title: 'Laporan',
         items: [
-            { to: '/laporan', label: 'Laporan', icon: BarChart2 },
+            { to: '/laporan', label: 'Laporan', icon: BarChart2, permission: 'laporan' },
         ],
     },
 ]
 
+const visibleMenu = computed(() =>
+    allMenu
+        .map(section => ({
+            ...section,
+            items: section.items.filter(item => authStore.can(item.permission)),
+        }))
+        .filter(section => section.items.length > 0)
+)
+
 onMounted(async () => {
     mode.value = await window.api.config.get('app_mode') ?? 'master'
+
 })
 </script>

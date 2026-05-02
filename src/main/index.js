@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, shell, session } from 'electron'
 import { join } from 'path'
 import LisensiService   from './electron/LisensiService'
 import ConfigService    from './electron/ConfigService'
@@ -40,6 +40,20 @@ function createWindow() {
 // ─── IPC + App ───────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
+
+    const isDev = process.env.NODE_ENV === 'development'
+    const csp   = isDev
+        ? "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http: ws:; font-src 'self' data:"
+        : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http:; font-src 'self' data:"
+
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': [csp],
+            },
+        })
+    })
 
     // Lisensi — verifyToken saja, aktivasi/validasi langsung dari renderer ke Laravel
     ipcMain.handle('lisensi:verifyToken', (_, token)      => LisensiService.verifyToken(token))

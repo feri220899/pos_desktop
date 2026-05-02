@@ -12,11 +12,30 @@ async function getClient() {
         ? `http://localhost:${port}`
         : `http://${await window.api.config.get('master_ip')}:${await window.api.config.get('master_port') ?? 3001}`
 
-    client = axios.create({ baseURL, timeout: 10000 })
+    const token = localStorage.getItem('auth_token')
+
+    client = axios.create({
+        baseURL,
+        timeout: 10000,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+
+    client.interceptors.response.use(
+        res => res,
+        err => {
+            if (err.response?.status === 401) {
+                localStorage.removeItem('auth_token')
+                localStorage.removeItem('auth_user')
+                client = null
+                window.location.hash = '/login'
+            }
+            return Promise.reject(err)
+        }
+    )
+
     return client
 }
 
-// Reset client (dipanggil jika config berubah)
 function reset() { client = null }
 
 export default {
