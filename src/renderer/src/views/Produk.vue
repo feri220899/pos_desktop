@@ -6,9 +6,8 @@ const produk = ref([])
 
 onMounted(async () => {
     try {
-        const response = await apibackend.get('/api/produk')
-        
-        produk.value = response.data
+        const response = await apibackend.get('/api/produk')        
+        produk.value = response.data.data
     } catch (error) {
         console.error('Error fetching produk:', error)
     }

@@ -1,22 +1,41 @@
 import Produk from '../models/Produk'
+import Response from '../helpers/response'
 
 function index(req, res) {
-    res.json({ success: true, data: Produk.all() })
+    try {
+        Response.success(res, Produk.all())
+    } catch {
+        Response.serverError(res)
+    }
 }
 
 function store(req, res) {
-    const result = Produk.create(req.body)
-    res.status(201).json({ success: true, data: { id: result.lastInsertRowid } })
+    try {
+        const result = Produk.create(req.body)
+        Response.created(res, { id: result.lastInsertRowid })
+    } catch {
+        Response.serverError(res)
+    }
 }
 
 function update(req, res) {
-    Produk.update(req.params.id, req.body)
-    res.json({ success: true })
+    try {
+        if (!Produk.find(req.params.id)) return Response.notFound(res)
+        Produk.update(req.params.id, req.body)
+        Response.success(res)
+    } catch {
+        Response.serverError(res)
+    }
 }
 
 function destroy(req, res) {
-    Produk.delete(req.params.id)
-    res.status(204).send()
+    try {
+        if (!Produk.find(req.params.id)) return Response.notFound(res)
+        Produk.destroy(req.params.id)
+        Response.noContent(res)
+    } catch {
+        Response.serverError(res)
+    }
 }
 
 export default { index, store, update, destroy }
