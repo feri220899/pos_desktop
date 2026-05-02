@@ -3,6 +3,7 @@ import { join } from 'path'
 import routes from './routes'
 import ConfigService from './services/ConfigService'
 import DiscoveryService from './services/DiscoveryService'
+import ServerService from './services/ServerService'
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -45,11 +46,19 @@ app.whenReady().then(() => {
 
     createWindow()
 
+    ipcMain.on('server:start', () => ServerService.start())
+
     const appMode = ConfigService.get('app_mode')
-    if (appMode === 'master') DiscoveryService.advertise()
+    if (appMode === 'master') {
+        ServerService.start()
+        DiscoveryService.advertise()
+    }
 })
 
-app.on('before-quit', () => DiscoveryService.destroy())
+app.on('before-quit', () => {
+    DiscoveryService.destroy()
+    ServerService.stop()
+})
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()

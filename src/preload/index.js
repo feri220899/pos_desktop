@@ -15,6 +15,9 @@ contextBridge.exposeInMainWorld('api', {
         getId: () => ipcRenderer.invoke('device:getId'),
     },
     openBrowser: (url) => ipcRenderer.invoke('shell:openExternal', url),
+    server: {
+        start: () => ipcRenderer.send('server:start'),
+    },
     discovery: {
         advertise: ()  => ipcRenderer.send('discovery:advertise'),
         scan:      ()  => ipcRenderer.send('discovery:scan'),

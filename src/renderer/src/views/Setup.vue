@@ -144,6 +144,7 @@ async function simpan() {
 
         if (mode.value === 'master') {
             await window.api.config.set('server_port', Number(port.value) || 3001)
+            window.api.server.start()
             window.api.discovery.advertise()
         } else {
             await window.api.config.set('master_ip',   selectedMaster.value.ip)
