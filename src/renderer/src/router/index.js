@@ -1,10 +1,12 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import Setup     from '../views/Setup.vue'
 import Aktivasi  from '../views/Aktivasi.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Produk    from '../views/Produk.vue'
 
 const routes = [
     { path: '/',          redirect: '/aktivasi' },
+    { path: '/setup',     component: Setup,     meta: { layout: false } },
     { path: '/aktivasi',  component: Aktivasi,  meta: { layout: false } },
     { path: '/dashboard', component: Dashboard, meta: { layout: true  } },
     { path: '/produk',    component: Produk,    meta: { layout: true  } },
@@ -29,6 +31,11 @@ async function renewInBackground() {
 }
 
 router.beforeEach(async (to) => {
+    if (to.path === '/setup') return true
+
+    const appMode = await window.api.config.get('app_mode')
+    if (!appMode) return '/setup'
+
     if (to.path === '/aktivasi') return true
 
     const token = await window.api.config.get('license_token')

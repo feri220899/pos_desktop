@@ -15,4 +15,11 @@ contextBridge.exposeInMainWorld('api', {
         getId: () => ipcRenderer.invoke('device:getId'),
     },
     openBrowser: (url) => ipcRenderer.invoke('shell:openExternal', url),
+    discovery: {
+        advertise: ()  => ipcRenderer.send('discovery:advertise'),
+        scan:      ()  => ipcRenderer.send('discovery:scan'),
+        stopScan:  ()  => ipcRenderer.send('discovery:stopScan'),
+        onFound:   (cb) => ipcRenderer.on('discovery:found', (_, master) => cb(master)),
+        offFound:  ()  => ipcRenderer.removeAllListeners('discovery:found'),
+    },
 })

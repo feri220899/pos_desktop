@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import { join } from 'path'
 import routes from './routes'
+import ConfigService from './services/ConfigService'
+import DiscoveryService from './services/DiscoveryService'
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -32,8 +34,22 @@ app.whenReady().then(() => {
         ipcMain.handle(channel, (_, ...args) => handler(...args))
     })
     ipcMain.handle('shell:openExternal', (_, url) => shell.openExternal(url))
+
+    ipcMain.on('discovery:advertise', () => DiscoveryService.advertise())
+    ipcMain.on('discovery:scan', (event) => {
+        DiscoveryService.scan((master) => {
+            event.sender.send('discovery:found', master)
+        })
+    })
+    ipcMain.on('discovery:stopScan', () => DiscoveryService.stopScan())
+
     createWindow()
+
+    const appMode = ConfigService.get('app_mode')
+    if (appMode === 'master') DiscoveryService.advertise()
 })
+
+app.on('before-quit', () => DiscoveryService.destroy())
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
